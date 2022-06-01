@@ -3,6 +3,7 @@ import pandas as pd
 import anndata as ad
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy import stats
 
 
 def test():
@@ -106,6 +107,18 @@ def sns_scatter(
     if is_log_scale == True:
         plt.yscale('log')
         
+    return None
+
+def get_p_values(adata):    
+    p_list = []
+    x,y = adata.shape
+    for n in range(0, y):
+        a = adata.layers['spliced'][:,n]
+        b = adata.layers['unspliced'][:,n]
+        ks_test = stats.ks_2samp(a, b)
+        p_list.append(ks_test[1])
+    
+    adata.var['p_value'] = p_list
     return None
     
     
