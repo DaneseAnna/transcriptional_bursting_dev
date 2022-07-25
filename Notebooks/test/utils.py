@@ -10,7 +10,12 @@ def test():
     print("this is a test function")
     
 
-def remove_na(adata):
+def remove_na(adata: ad.AnnData):
+    """remove NA values from given anndata in slpiced and unspliced layers
+
+    Args:
+        adata (ad.AnnData): Anndata to be modified
+    """
     allele_1 = pd.DataFrame(adata.layers['spliced'], columns=adata.var.index)
     allele_2 = pd.DataFrame(adata.layers['unspliced'], columns=adata.var.index)
     total = pd.DataFrame(adata.X, columns=adata.var.index, index=adata.obs.index)
@@ -29,10 +34,15 @@ def remove_na(adata):
     adata.layers['spliced'] = allele_1[common_genes]
     adata.layers['unspliced'] = allele_2[common_genes]
     
-    return None
+    return
 
 
-def find_ratios_sum(adata):
+def find_ratios_sum(adata: ad.AnnData):
+    """find ratio sum of counts in spliced nd unspliced layers
+
+    Args:
+        adata (ad.AnnData): Anndata to be modified
+    """
     allele_1 = pd.DataFrame(adata.layers['spliced'], columns=adata.var.index)
     allele_2 = pd.DataFrame(adata.layers['unspliced'], columns=adata.var.index)
     
@@ -54,10 +64,15 @@ def find_ratios_sum(adata):
     adata.var["ratio_allele_1"] = allele_1_sum_ratio[common_genes]
     adata.var["ratio_allele_2"] = allele_2_sum_ratio[common_genes]
     
-    return None
+    return
 
 
-def find_ratios_std(adata):
+def find_ratios_std(adata: ad.AnnData):
+    """find standard deviationratios of counts in spliced and unslpiced layers
+
+    Args:
+        adata (ad.AnnData): Anndata to be modified
+    """
     allele_1 = pd.DataFrame(adata.layers['spliced'], columns=adata.var.index)
     allele_2 = pd.DataFrame(adata.layers['unspliced'], columns=adata.var.index)
     
@@ -89,17 +104,26 @@ def find_ratios_std(adata):
     adata.var["ratio_std_allele_1"] = allele_1_ratio_std[common_genes]
     adata.var["ratio_std_allele_2"] = allele_2_ratio_std[common_genes]
     
-    return None
+    return
 
 
 def sns_scatter(
-    x=None,
-    y=None,
+    x:str=None,
+    y:str=None,
     data=None,
-    is_log_scale=False,
+    is_log_scale:bool=False,
     selected_genes=None,
     **kwargs
 ):
+    """creates sns scatter plot, modified to possibly highlight given set of genes and display in log scale
+
+    Args:
+        x (_type_, optional): _description_. Defaults to None.
+        y (str, optional): _description_. Defaults to None.
+        data (_type_, optional): _description_. Defaults to None.
+        is_log_scale (bool, optional): _description_. Defaults to False.
+        selected_genes (_type_, optional): _description_. Defaults to None.
+    """
     sns.scatterplot(x=x, y=y, data=data, **kwargs)
     if selected_genes != None:
         df = pd.DataFrame(data, index=selected_genes, columns=data.columns)
@@ -107,9 +131,14 @@ def sns_scatter(
     if is_log_scale == True:
         plt.yscale('log')
         
-    return None
+    return
 
-def get_p_values(adata):    
+def get_p_values(adata: ad.AnnData):    
+    """generates P-values for ks statistics using spliced and unspliced layers
+
+    Args:
+        adata (ad.AnnData): _description_
+    """
     p_list = []
     x,y = adata.shape
     for n in range(0, y):
@@ -119,7 +148,7 @@ def get_p_values(adata):
         p_list.append(ks_test[1])
     
     adata.var['p_value'] = p_list
-    return None
+    return
     
     
 
