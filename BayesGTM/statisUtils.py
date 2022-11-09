@@ -118,3 +118,37 @@ def statisGTM(param, k):
     statis = np.array([m, cv2, fano, sk, kt, bc])
 
     return statis
+
+
+
+
+
+"""This code simulates scRNA-seq data under the GTM.
+Inputs:
+   param: A structure contains model parameters 
+   param.kon and param.ron: OFF dwell time distribution f_off(t) = ron^(kon) * t^(kon-1) * e^(-ron * t) / gamma(kon)
+   param.koff and param.roff: ON dwell time distribution f_on(t) = roff^(koff) * t^(koff-1) * e^(-roff * t) / gamma(koff)
+   param.mu: Transcriptional rate
+   param.delta: Degradation rate
+   param.x0; The initial point of the simulation
+   param.tottime: The total time of the simulation
+
+Outputs:
+   x - Time series of [OFF ON mRNA]
+   t - Corresponds to time of x
+"""
+# def simulGTM(param):
+#     koff = param['koff']
+#     roff = param['roff']
+#     kon = param['kon']
+#     ron = param['ron']
+#     mu = param['mu']
+#     delta = param['delta']
+#     x = param['x0']
+#     tottime = param['tottime']
+
+#     r_mu = np.matrix('-1. 1. 0.; 1. -1. 0; 0 0 1; 0 0 -1', dtype=np.float64)
+    
+#     t = 0
+
+# while 

@@ -24,8 +24,11 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
     result, flag = ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene)
     # result, flag = np.load('data/prior/gene_Atf4.npy', allow_pickle='True')
 
+    # start_posterior = time.time()
+    # print(f"Start Processing posterior: Gene = {gene}")
+
     
-    W = (1 / N) * np.ones((N,T))
+    # W = (1 / N) * np.ones((N,T))
     param = {}
 
     # sequential sampling
@@ -33,9 +36,13 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
     
     if flag == True: 
         for t in range(2, T + 1):
-            print(f"Processing Posterior: Gene = {gene}, T = {t}")
+            # temp_start = time.time()
+            # print(f"Start Processing Posterior: Gene = {gene}, T = {t}")
+
+
             temp_dist_array = np.array([d[0]['dist'] for d in result[:,t-2]])        
-            epsilon = np.percentile(temp_dist_array, 50)
+            # epsilon = np.percentile(temp_dist_array, 50)
+            epsilon = np.median(temp_dist_array)
 
             # generate new generation of particles
             for i in range(1, N+1):
@@ -44,7 +51,7 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
                 r = np.inf
                 total_time = 0
 
-                while total_time < 20 and r > epsilon:
+                while total_time < 10 and r > epsilon:
                     start = time.time()
 
                     j = np.random.choice(N, size = 1, replace = True, p = W[:, t-2])[0]
@@ -70,7 +77,7 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
                     param['mu'] = param_proposal[4]
                     param['delta'] = 1
 
-                    result[i-1,t-1][0] = {}
+                    
                     static_temp = f(param)
 
                     if (len(static_temp[static_temp<0]) > 0) or (np.sum(static_temp) == 0.):
@@ -78,6 +85,8 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
                         
                     r = rho(static_temp)
                     
+                    # TODO: use copy function and check
+                    result[i-1,t-1][0] = {}
                     result[i-1,t-1][0]['kon'] = param['kon']
                     result[i-1,t-1][0]['ron'] = param['ron']
                     result[i-1,t-1][0]['koff'] = param['koff']
@@ -90,7 +99,7 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
                     elapsedTime = end - start
                     total_time = total_time + elapsedTime
                 
-                if total_time > 20:
+                if total_time > 10:
                     flag = False
                     break
 
@@ -125,7 +134,7 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
                 break
 
             # resample
-            if t < T: #need to validate
+            if t < T:
                 result_rs  = result[:,t-1]
                 W[:,t-1] = W[:,t-1]/sum(W[:,t-1])
                 J =  np.random.choice(N, size = N, replace = True, p = W[:, t-1])
@@ -133,6 +142,16 @@ def ABCSMCSampler(N,prior,f,rho,epsilon,T,proposal,proposal_pdf,gene):
             
             # re-set weights
             W[:,t-1] = 1./N
+
+            # temp_end = time.time()
+            # temp_time = temp_end - temp_start
+            # print(f"End Processing Posterior: Gene = {gene}, T = {t}, time = {temp_time}")
+            # print()
+    
+    # end_posterior = time.time()
+    # posterior_time = end_posterior - start_posterior
+    # print(f"Finished Processing posterior: Time = {posterior_time}")
+    # print()
     return (result, flag)   
 
 
@@ -152,8 +171,8 @@ Outputs:
    result - a matrix of ABC prior samples
 """
 def ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene):
-
-    print(f"Processing Prior: Gene = {gene}")
+    # start_prior = time.time()
+    # print(f"Start Processing Prior: Gene = {gene}")
     result = np.empty([N,T,1], dtype=object)
     result0 = []
     total_time = 0.
@@ -189,6 +208,7 @@ def ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene):
 
         param['dist'] = dist
 
+
         # accept or reject
         if dist <= epsilon:
 
@@ -204,6 +224,9 @@ def ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene):
             # test+=1
 
             # print(size_val, dist)
+
+            # TODO: use copy and check
+
             result_obj = {}
             result_obj['kon'] = param['kon']
             result_obj['ron'] = param['ron']
@@ -223,7 +246,7 @@ def ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene):
 
     if total_time > 5*N:
         flag = False
-        print('Gene %d :wrong!!\n',gene)
+        print(f'Gene {gene}:wrong!!\n')
         # time.sleep(5)
     else:
         index0 = np.argsort([d['dist'] for d in result0])
@@ -231,6 +254,11 @@ def ABCRejectionSampler(N,prior,f,rho,epsilon,T,gene):
         for index2 in range (1, N + 1):
             result[index2-1,0] = result0[index2-1]
     
-    np.save(f'data/prior/gene_{gene}.npy', np.array([result, flag], dtype=object))
+    # np.save(f'data/prior/gene_{gene}.npy', np.array([result, flag], dtype=object))
+
+    # end_prior = time.time()
+    # prior_time = end_prior - start_prior
+    # print(f"Finished Processing Prior: Time = {prior_time}")
+    # print()
 
     return (result, flag)
